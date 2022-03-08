@@ -15,14 +15,11 @@ export class UserEntity {
   @Column({ default: '' })
   bio: string;
 
-  @Column({ default: '' })
-  image: string;
-
   @Column()
   password: string;
 
   @BeforeInsert() // будет вызвана до того, как мы сделали запись в БД
-  async hasPassword() {
+  async hashPassword() {
     this.password = await hash(this.password, 10);
   }
 }
