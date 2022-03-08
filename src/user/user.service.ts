@@ -18,7 +18,7 @@ export class UserService {
       email: createUserDto.email,
     });
     const userByName = await this.userRepository.findOne({
-      email: createUserDto.username,
+      username: createUserDto.username,
     });
 
     if (userByEmail || userByName) {
