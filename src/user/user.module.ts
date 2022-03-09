@@ -8,7 +8,9 @@ import { UserService } from './user.service';
   imports: [TypeOrmModule.forFeature([UserEntity])], // те сущности, которые здесь прописаны - будут доступны внутри модуля service
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}
 
 //"forFeature()" - позволяет  внедрить "@InjectRepository(UserEntity)" в наш файл service
+// UserService - не досутпен снаружи по умолчанию.
