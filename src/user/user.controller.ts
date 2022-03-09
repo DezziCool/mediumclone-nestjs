@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { UserResponseInterface } from './types/userResponce.interface';
 import { UserService } from './user.service';
 import { User } from './decorators/user.decorators';
 import { UserEntity } from './user.entity';
+import { AuthGuard } from './guards/auth.guard';
 
 @Controller()
 export class UserController {
@@ -38,12 +40,9 @@ export class UserController {
 
   // идея в том, что на этот route могут заходить только залогиненные пользователи
   @Get('user')
-  async currentUser(
-    @User() user: UserEntity,
-    @User('id') currentUserId: UserEntity,
-  ): Promise<UserResponseInterface> {
-    console.log('user', user);
-    console.log('userId', currentUserId);
+  @UseGuards(AuthGuard)
+  async currentUser(@User() user: UserEntity): Promise<UserResponseInterface> {
+    console.log(user);
     return this.userService.builduserResponse(user);
   }
 }
