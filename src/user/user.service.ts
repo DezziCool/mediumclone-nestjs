@@ -8,6 +8,7 @@ import { JWT_SECRET } from '@app/config';
 import { UserResponseInterface } from './types/userResponce.interface';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { compare } from 'bcrypt';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -69,6 +70,15 @@ export class UserService {
     const newUser = new UserEntity(); // реализовать сохранение пользователя
     Object.assign(newUser, createUserDto); // мутируем объект "newUser"
     return await this.userRepository.save(newUser); // сохрванение пользователя внутри БД
+  }
+
+  async updateUser(
+    userId: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserEntity> {
+    const user = await this.findById(userId);
+    Object.assign(user, updateUserDto); // мутируем объект
+    return await this.userRepository.save(user);
   }
 
   generateJwt(user: UserEntity): string {
