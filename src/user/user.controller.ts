@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Post,
-  Req,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -11,8 +10,8 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { UserResponseInterface } from './types/userResponce.interface';
 import { UserService } from './user.service';
-import { Request } from 'express';
-import { ExpressRequestInterface } from './types/expressRequest.interfaces';
+import { User } from './decorators/user.decorators';
+import { UserEntity } from './user.entity';
 
 @Controller()
 export class UserController {
@@ -37,11 +36,16 @@ export class UserController {
     return this.userService.builduserResponse(user);
   }
 
+  // идея в том, что на этот route могут заходить только залогиненные пользователи
   @Get('user')
   async currentUser(
-    @Req() request: ExpressRequestInterface,
+    @User() user: UserEntity,
+    @User('id') currentUserId: UserEntity,
   ): Promise<UserResponseInterface> {
-    console.log(request.user);
-    return this.userService.builduserResponse(request.user);
+    console.log('user', user);
+    console.log('userId', currentUserId);
+    return this.userService.builduserResponse(user);
   }
 }
+
+// наш middleware отрабатывается раньше чем декоратор @User()
