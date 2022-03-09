@@ -15,7 +15,7 @@ export class UserEntity {
   @Column({ default: '' })
   bio: string;
 
-  @Column()
+  @Column({ select: false }) // По умолчанию указываем, что мы не отображаем эту колонку - исключает из абсалютно всех запросов (find(), findOne())
   password: string;
 
   @BeforeInsert() // будет вызвана до того, как мы сделали запись в БД
