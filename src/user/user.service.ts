@@ -17,9 +17,12 @@ export class UserService {
   ) {}
 
   async loginUser(loginUserDto: LoginUserDto): Promise<UserEntity> {
-    const user = await this.userRepository.findOne({
-      email: loginUserDto.email,
-    });
+    const user = await this.userRepository.findOne(
+      {
+        email: loginUserDto.email,
+      },
+      { select: ['id', 'username', 'bio', 'password'] }, // указываем какие поля хотим получить. Только так можем вытащить колокнку 'password'.
+    );
 
     if (!user) {
       throw new HttpException(
@@ -41,6 +44,7 @@ export class UserService {
     }
 
     console.log('Login user - ', user.username);
+    user.password = loginUserDto.password;
     return user;
   }
 
