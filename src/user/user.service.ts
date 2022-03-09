@@ -48,6 +48,10 @@ export class UserService {
     return user;
   }
 
+  async findById(id: number): Promise<UserEntity> {
+    return this.userRepository.findOne(id);
+  }
+
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
     const userByEmail = await this.userRepository.findOne({
       email: createUserDto.email,
