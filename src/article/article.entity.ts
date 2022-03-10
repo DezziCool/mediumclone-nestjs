@@ -1,4 +1,11 @@
-import { BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { UserEntity } from '@app/user/user.entity';
+import {
+  BeforeUpdate,
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'articles' })
 export class ArticleEntity {
@@ -23,8 +30,8 @@ export class ArticleEntity {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
-  @Column('simple-array') // указываем что жто массив
-  tagList: string;
+  @Column('simple-array') // указываем что это массив
+  tagList: string[];
 
   @Column({ default: 0 })
   favoritesCount: number;
@@ -33,7 +40,12 @@ export class ArticleEntity {
   updateTimeStamp() {
     this.updatedAt = new Date();
   }
+
+  @ManyToOne(() => UserEntity, (user) => user.articles) // отношение множество к одному
+  author: UserEntity;
 }
 
 // default: () => 'CURRENT_TIMESTAMP' - позволяет установмить текущую отметку времени по умолчанию при создании строки
 // "updatedAt" - не будет сама по себе обновлять время, поэтому создали функцию с декоратором "@BeforeUpdate()"
+
+// в миграции у нас создается колонка authorId
