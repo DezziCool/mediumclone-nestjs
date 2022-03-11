@@ -42,5 +42,3 @@ export class ArticleService {
     );
   }
 }
-// slug - реализовать правильное создание по нашему tittle
-// плохо работает slug
