@@ -1,5 +1,5 @@
 import { UserEntity } from '@app/user/user.entity';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ArticleEntity } from './article.entity';
@@ -28,6 +28,20 @@ export class ArticleService {
     article.author = currentUser;
 
     return await this.articleRepository.save(article);
+  }
+
+  async findBySlug(slug: string): Promise<ArticleEntity> {
+    const article = await this.articleRepository.findOne({ slug });
+    console.log(article);
+    if (!article) {
+      throw new HttpException(
+        'slug no response',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    return article;
+    // return await this.articleRepository.findOne({ slug });
   }
 
   buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
