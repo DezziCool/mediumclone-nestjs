@@ -1,7 +1,7 @@
 import { UserEntity } from '@app/user/user.entity';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { ArticleEntity } from './article.entity';
 import { CreateArticleDto } from './dto/createArticle.dto';
 import { ArticleResponseInterface } from './types/articleResponse.interface';
@@ -34,14 +34,21 @@ export class ArticleService {
     const article = await this.articleRepository.findOne({ slug });
     console.log(article);
     if (!article) {
-      throw new HttpException(
-        'slug no response',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new HttpException('slug no response', HttpStatus.NOT_FOUND);
     }
 
     return article;
-    // return await this.articleRepository.findOne({ slug });
+  }
+
+  async DeleteArticle(
+    slug: string,
+    currentUserId: number,
+  ): Promise<DeleteResult> {
+    const article = await this.findBySlug(slug);
+    if (currentUserId != article.author.id) {
+      throw new HttpException('You are not an author', HttpStatus.NOT_FOUND);
+    }
+    return await this.articleRepository.delete({ slug });
   }
 
   buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
