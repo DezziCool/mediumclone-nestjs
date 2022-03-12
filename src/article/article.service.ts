@@ -6,6 +6,7 @@ import { ArticleEntity } from './article.entity';
 import { CreateArticleDto } from './dto/createArticle.dto';
 import { ArticleResponseInterface } from './types/articleResponse.interface';
 import slugify from 'slugify';
+import { UpdateArticleDto } from './dto/updateArticle.dto';
 
 @Injectable()
 export class ArticleService {
@@ -30,25 +31,38 @@ export class ArticleService {
     return await this.articleRepository.save(article);
   }
 
-  async findBySlug(slug: string): Promise<ArticleEntity> {
+  async findBySlug(
+    slug: string,
+    currentUserId?: number,
+  ): Promise<ArticleEntity> {
     const article = await this.articleRepository.findOne({ slug });
-    console.log(article);
     if (!article) {
       throw new HttpException('slug no response', HttpStatus.NOT_FOUND);
+    }
+    if (currentUserId && currentUserId != article.author.id) {
+      throw new HttpException('You are not an author', HttpStatus.NOT_FOUND);
     }
 
     return article;
   }
 
-  async DeleteArticle(
+  async deleteArticle(
     slug: string,
     currentUserId: number,
   ): Promise<DeleteResult> {
-    const article = await this.findBySlug(slug);
-    if (currentUserId != article.author.id) {
-      throw new HttpException('You are not an author', HttpStatus.NOT_FOUND);
-    }
+    await this.findBySlug(slug, currentUserId);
+
     return await this.articleRepository.delete({ slug });
+  }
+
+  async updateArticle(
+    slug: string,
+    currentUserId: number,
+    updateArticleDto: UpdateArticleDto,
+  ) {
+    const article = await this.findBySlug(slug, currentUserId);
+    Object.assign(article, updateArticleDto);
+    return await this.articleRepository.save(article);
   }
 
   buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
