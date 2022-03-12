@@ -41,7 +41,7 @@ export class ArticleEntity {
     this.updatedAt = new Date();
   }
 
-  @ManyToOne(() => UserEntity, (user) => user.articles) // отношение множество к одному
+  @ManyToOne(() => UserEntity, (user) => user.articles, { eager: true }) // отношение множество к одному
   author: UserEntity;
 }
 
@@ -49,3 +49,4 @@ export class ArticleEntity {
 // "updatedAt" - не будет сама по себе обновлять время, поэтому создали функцию с декоратором "@BeforeUpdate()"
 
 // в миграции у нас создается колонка authorId
+// { eager: true } -  это значит что всегда с нашим постом мы будем загружать автора
