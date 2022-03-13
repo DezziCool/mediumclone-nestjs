@@ -2,6 +2,8 @@ import {
   BeforeInsert,
   Column,
   Entity,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -32,5 +34,9 @@ export class UserEntity {
 
   @OneToMany(() => ArticleEntity, (article) => article.author) // отношение один ко многим
   articles: ArticleEntity[];
+
+  @ManyToMany(() => ArticleEntity) // указываем что у нас есть Many to Many ассоциация между user и article
+  @JoinTable() // он необходим для того, чтобы у нас была создана отдельная таблица под это
+  favorites: ArticleEntity[]; // это наименование поля, которое содержит массив наших ArticleEntity; Массив тех статей, которых залайкал user.
 }
 //  также нужно поле password, но мы не должны будем его отображать.
