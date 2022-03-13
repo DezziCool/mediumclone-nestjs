@@ -54,9 +54,6 @@ export class ArticleService {
     if (query.offset) {
       queryBilder.offset(query.offset); // указывает сколько кол-во строк требуется пропустить перед тем как начать искать
     }
-    // if (query.limit) {
-    //   queryBilder.limit(query.limit);
-    // }
 
     const articles = await queryBilder.getMany(); // вернет массив articles из нашего запроса queryBilder
 
@@ -112,6 +109,32 @@ export class ArticleService {
     const article = await this.findBySlug(slug, currentUserId);
     Object.assign(article, updateArticleDto);
     return await this.articleRepository.save(article);
+  }
+
+  async addArticleToFavorites(
+    slug: string,
+    currentUserId: number,
+  ): Promise<ArticleEntity> {
+    // user.favorites.push(article)
+    const article = await this.findBySlug(slug, currentUserId);
+    const user = await this.userRepository.findOne(currentUserId, {
+      relations: ['favorites'],
+    });
+    // ищем индекс в элементе массива - убедиться что значение = "-1", т.е. его нет в массиве
+    const isNotFavorited =
+      user.favorites.findIndex(
+        (articleInFavorites) => articleInFavorites.id === article.id,
+      ) === -1; // переводим полученнное значение в тип "boolen"
+
+    //если не залайкнут пост - лайкаем
+    if (isNotFavorited) {
+      user.favorites.push(article);
+      article.favoritesCount++;
+      // сохраняем изменения
+      await this.userRepository.save(user);
+      await this.articleRepository.save(article);
+    }
+    return article;
   }
 
   buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
