@@ -125,7 +125,7 @@ export class ArticleService {
       user.favorites.findIndex(
         (articleInFavorites) => articleInFavorites.id === article.id,
       ) === -1; // переводим полученнное значение в тип "boolen"
-
+    console.log('isNotFavorited add - ', isNotFavorited);
     //если не залайкнут пост - лайкаем
     if (isNotFavorited) {
       user.favorites.push(article);
@@ -133,7 +133,34 @@ export class ArticleService {
       // сохраняем изменения
       await this.userRepository.save(user);
       await this.articleRepository.save(article);
+      console.log('save like');
     }
+    return article;
+  }
+
+  async deleteArticleFromFavorites(
+    slug: string,
+    currentUserId: number,
+  ): Promise<ArticleEntity> {
+    const article = await this.findBySlug(slug, currentUserId);
+    const user = await this.userRepository.findOne(currentUserId, {
+      relations: ['favorites'],
+    });
+    // ищем индекс в элементе массива - убедиться что значение = "-1", т.е. его нет в массиве
+    const articleIndex = user.favorites.findIndex(
+      (articleInFavorites) => articleInFavorites.id === article.id,
+    );
+    console.log('articleIndex del - ', articleIndex);
+
+    if (articleIndex >= 0) {
+      user.favorites.splice(articleIndex, 1); // меняем этот же массив; удаляет наш лайк из массива "favorites"
+      article.favoritesCount--;
+      // сохраняем изменения
+      await this.userRepository.save(user);
+      await this.articleRepository.save(article);
+      console.log('delete like');
+    }
+
     return article;
   }
 
