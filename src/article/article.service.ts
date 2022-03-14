@@ -8,6 +8,7 @@ import { ArticleResponseInterface } from './types/articleResponse.interface';
 import slugify from 'slugify';
 import { UpdateArticleDto } from './dto/updateArticle.dto';
 import { ArticlesResponseInterface } from './types/articlesResponse.interface';
+import { FollowEntity } from '@app/profile/follow.entity';
 
 @Injectable()
 export class ArticleService {
@@ -16,6 +17,8 @@ export class ArticleService {
     private readonly articleRepository: Repository<ArticleEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(FollowEntity)
+    private readonly followRepository: Repository<FollowEntity>,
   ) {}
 
   async findAll(
@@ -91,6 +94,41 @@ export class ArticleService {
     });
 
     return { articles: articlesWithFavorites, articlesCount };
+  }
+
+  async getFeed(
+    currentUserId: number,
+    query: any,
+  ): Promise<ArticlesResponseInterface> {
+    const follows = await this.followRepository.find({
+      followerId: currentUserId,
+    });
+
+    if (follows.length === 0) {
+      return { articles: [], articlesCount: 0 };
+    }
+
+    const followUserIds: number[] = follows.map((follow) => follow.followingId);
+    const queryBilder = getRepository(ArticleEntity)
+      .createQueryBuilder('articles')
+      .leftJoinAndSelect('articles.author', 'author')
+      .where('articles.authorId IN (:...ids)', { ids: followUserIds }); // получить только те посты, у которых "authorId" находится в нашем массиве.
+
+    queryBilder.orderBy('articles.createdAt', 'DESC');
+
+    const articlesCount = await queryBilder.getCount();
+
+    if (query.limit) {
+      queryBilder.limit(query.limit);
+    }
+
+    if (query.offset) {
+      queryBilder.offset(query.offset);
+    }
+
+    const articles = await queryBilder.getMany();
+
+    return { articles, articlesCount };
   }
 
   async createArticle(
