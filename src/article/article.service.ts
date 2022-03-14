@@ -48,6 +48,23 @@ export class ArticleService {
       });
     }
 
+    if (query.favorited) {
+      const author = await this.userRepository.findOne(
+        {
+          username: query.favorited,
+        },
+        { relations: ['favorites'] },
+      );
+      const ids = author.favorites.map((el) => el.id);
+      // проверяем у каждого "article" поле "id" и проверяем что этот "id" находится в массиве "ids"
+      // но если "ids" будет пустым - typeorm ломается
+      if (ids.length > 0) {
+        queryBilder.andWhere('articles.id IN (:...ids)', { ids });
+      } else {
+        queryBilder.andWhere('1=0'); // просто создали для того, чтобы оборвать наш queryBilder. Иначе он вернет все наши посты
+      }
+    }
+
     if (query.limit) {
       queryBilder.limit(query.limit);
     }
@@ -55,9 +72,25 @@ export class ArticleService {
       queryBilder.offset(query.offset); // указывает сколько кол-во строк требуется пропустить перед тем как начать искать
     }
 
-    const articles = await queryBilder.getMany(); // вернет массив articles из нашего запроса queryBilder
+    // если м не залогинены "favoriteIds" всегда будет пустой
+    let favoriteIds: number[] = [];
 
-    return { articles, articlesCount };
+    if (currentUserId) {
+      // currentUser - это "UserEntity" с "favorites".
+      const currentUser = await this.userRepository.findOne(currentUserId, {
+        relations: ['favorites'],
+      });
+      // записываем массив "articles", который залайкнуты
+      favoriteIds = currentUser.favorites.map((favorite) => favorite.id);
+    }
+
+    const articles = await queryBilder.getMany(); // вернет массив articles из нашего запроса queryBilder
+    const articlesWithFavorites = articles.map((article) => {
+      const favorited = favoriteIds.includes(article.id);
+      return { ...article, favorited };
+    });
+
+    return { articles: articlesWithFavorites, articlesCount };
   }
 
   async createArticle(
