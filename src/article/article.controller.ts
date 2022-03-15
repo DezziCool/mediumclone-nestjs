@@ -1,3 +1,4 @@
+import { BackendValidationPipe } from '@app/shared/pipes/backendValidation.pipe';
 import { User } from '@app/user/decorators/user.decorators';
 import { AuthGuard } from '@app/user/guards/auth.guard';
 import { UserEntity } from '@app/user/user.entity';
@@ -12,7 +13,6 @@ import {
   Query,
   UseGuards,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/createArticle.dto';
@@ -43,7 +43,7 @@ export class ArticleController {
 
   @Post()
   @UseGuards(AuthGuard) // только зарегистрированный пользователь может сюда зайти
-  @UsePipes(new ValidationPipe()) // добавили валидацию нашего dto внутри запроса
+  @UsePipes(new BackendValidationPipe()) // добавили валидацию нашего dto внутри запроса
   async create(
     @User() currentUser: UserEntity,
     @Body('article') createArticleDto: CreateArticleDto,
